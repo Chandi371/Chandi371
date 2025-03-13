@@ -15,11 +15,11 @@ git clone https://github.com/Chandi371/Chandi371.git cd Chandi371
 
 2. Give execution permission:
 
-chmod +x install-windows.sh
+chmod +x win.sh
 
 3. Run the script:
 
-bash install-windows.sh
+bash win.sh
 
 ## 🔹 How to Start MATE Desktop  
 After installation, run:
