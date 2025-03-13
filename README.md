@@ -11,7 +11,7 @@ This script sets up a **full-featured Windows-like environment** in Termux, usin
 ## 🔹 Installation  
 1. Clone this repository:
 
-git clone <YOUR_REPO_LINK> cd <REPO_NAME>
+git clone https://github.com/Chandi371/Chandi371.git cd Chandi371
 
 2. Give execution permission:
 
@@ -42,4 +42,5 @@ For any issues, feel free to open an **issue** in this repository.
 
 ---
 
-This README provides clear instructions so that users can install and use it easily. Let me know if you want any changes!
+This README is now ready for upload. Let me know if you need any more changes!
+
