@@ -6,15 +6,15 @@
 # ╚════██║██║   ██║╚════██║██╔══██║██║   ██║╚════██║   ██║   
 # ███████║╚██████╔╝███████║██║  ██║╚██████╔╝███████║   ██║   
 # ╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   
-#          HEAVIEST WINDOWS-LIKE ENVIRONMENT FOR TERMUX
-#         With MATE, Wine, Box86/Box64 & Full Dependencies
+#      HEAVIEST WINDOWS-LIKE ENVIRONMENT FOR TERMUX
+#    With MATE, Wine, Box86/Box64 & Full Dependencies
 # -----------------------------------------------------------
 
 # Clear the terminal for a clean start
 clear
 
 # STEP 1: UPDATE & UPGRADE PACKAGES
-echo "Updating packages..."
+echo "Updating Termux packages..."
 apt update && apt upgrade -y
 clear
 
@@ -24,45 +24,81 @@ pkg install x11-repo -y
 pkg install tur-repo -y
 clear
 
-# STEP 3: INSTALL PROOT DISTRO (For compatibility)
-echo "Installing proot-distro..."
+# STEP 3: INSTALL PROOT-DISTRO & SET UP DEBIAN
+echo "Installing proot-distro and setting up Debian..."
 pkg install proot-distro -y
+proot-distro install debian
 clear
 
-# STEP 4: INSTALL GUI COMPONENTS
-echo "Installing GUI components (MATE Desktop)..."
-pkg install tigervnc mate-session-manager mate-panel mate-themes mate-terminal mate-control-center -y
+# STEP 4: LOG INTO DEBIAN AND INSTALL EVERYTHING INSIDE
+echo "Entering Debian and installing MATE, Wine, Box86/Box64..."
+proot-distro login debian --shared-tmp -- bash -c "
+apt update && apt upgrade -y && apt --fix-broken install -y
 clear
 
-# STEP 5: INSTALL WINE & BOX86/BOX64
-echo "Installing Wine, Box86, and Box64 for running Windows applications..."
-pkg install wine wine32 box86 box64 -y
+# ENABLE i386 ARCHITECTURE
+dpkg --add-architecture i386
+apt update
 clear
 
-# STEP 6: SET UP VNC SERVER
-echo "Setting up VNC Server..."
+# INSTALL MATE DESKTOP
+apt install mate-desktop-environment mate-session-manager mate-panel mate-themes mate-terminal mate-control-center -y
+clear
+
+# INSTALL VNC SERVER
+apt install tigervnc-standalone-server -y
+clear
+
+# INSTALL WINE
+apt install wine -y
+clear
+
+# INSTALL BOX86 & BOX64 (Download Precompiled Binaries)
+wget -O /usr/local/bin/box86 https://github.com/ptitSeb/box86/releases/latest/download/box86
+wget -O /usr/local/bin/box64 https://github.com/ptitSeb/box64/releases/latest/download/box64
+chmod +x /usr/local/bin/box86 /usr/local/bin/box64
+clear
+
+# INSTALL XDG UTILS FOR DOUBLE-CLICK SUPPORT
+apt install xdg-utils -y
+clear
+
+# SETTING UP DOUBLE-CLICK SUPPORT FOR .EXE FILES
+echo '[Desktop Entry]' > ~/.local/share/applications/wine.desktop
+echo 'Name=Wine Windows Program Loader' >> ~/.local/share/applications/wine.desktop
+echo 'Exec=wine %f' >> ~/.local/share/applications/wine.desktop
+echo 'Type=Application' >> ~/.local/share/applications/wine.desktop
+echo 'MimeType=application/x-ms-dos-executable;' >> ~/.local/share/applications/wine.desktop
+chmod +x ~/.local/share/applications/wine.desktop
+xdg-mime default wine.desktop application/x-ms-dos-executable
+clear
+
+# CONFIGURE VNC SERVER FOR MATE
 mkdir -p ~/.vnc
-echo "#!/bin/bash" > ~/.vnc/xstartup
-echo "mate-session &" >> ~/.vnc/xstartup
+echo '#!/bin/bash' > ~/.vnc/xstartup
+echo 'export DISPLAY=:1' >> ~/.vnc/xstartup
+echo 'export XDG_RUNTIME_DIR=/tmp' >> ~/.vnc/xstartup
+echo 'mate-session &' >> ~/.vnc/xstartup
 chmod +x ~/.vnc/xstartup
 clear
 
-# STEP 7: FIX POTENTIAL NETWORK ISSUES
+echo 'Setup inside Debian complete!'
+"
+clear
+
+# STEP 5: FIX NETWORK ISSUES
 echo "Fixing potential network issues..."
 echo 'nameserver 8.8.8.8' > /data/data/com.termux/files/usr/etc/resolv.conf
 clear
 
-# STEP 8: CONFIGURE .EXE FILE ASSOCIATION FOR WINE
-echo "Configuring Wine to run .exe files..."
-pkg install xdg-utils -y
-xdg-mime default wine.desktop application/x-ms-dos-executable
+# STEP 6: START DEBIAN & VNC SERVER
+echo "Starting Debian and VNC Server..."
+proot-distro login debian --shared-tmp -- vncserver
 clear
-
-# STEP 9: START VNC SERVER
-echo "Starting VNC Server..."
-vncserver
 
 # FINAL MESSAGE
 echo "Setup complete! You can now connect to your MATE desktop using a VNC viewer."
 echo "Run the following command anytime to start your GUI:"
-echo "    vncserver"
+echo "    proot-distro login debian --shared-tmp -- vncserver"
+echo "To run Windows apps, just double-click the .exe file in MATE!"
+clear
